@@ -23,8 +23,12 @@ public enum ErrorCode {
     BOOKMARK_ALREADY_EXISTS("B001", "이미 북마크한 질문입니다.", HttpStatus.CONFLICT),
     BOOKMARK_NOT_FOUND("B002", "북마크를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
+    // 복습
+    REVIEW_STATUS_INVALID("R001", "유효하지 않은 복습 상태입니다.", HttpStatus.BAD_REQUEST),
+
     // 답변
-    ANSWER_NOT_FOUND("AN001", "답변을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    ANSWER_NOT_FOUND("AN001", "답변을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    ANSWER_ALREADY_EXISTS("AN002", "이미 답변이 존재합니다. 수정은 PUT을 사용하세요.", HttpStatus.CONFLICT);
 
     private final String code;
     private final String message;
