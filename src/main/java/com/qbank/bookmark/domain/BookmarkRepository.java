@@ -26,4 +26,7 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     @Query("SELECT COUNT(b) FROM Bookmark b WHERE b.userId = :userId")
     long countByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(b) FROM Bookmark b WHERE b.questionId = :questionId")
+    long countByQuestionId(@Param("questionId") Long questionId);
 }

@@ -4,6 +4,7 @@ import com.qbank.bookmark.domain.BookmarkCountProjection;
 import com.qbank.bookmark.domain.BookmarkRepository;
 import com.qbank.common.exception.BusinessException;
 import com.qbank.common.exception.ErrorCode;
+import com.qbank.question.application.dto.QuestionDetail;
 import com.qbank.question.application.dto.QuestionSearchCondition;
 import com.qbank.question.application.dto.QuestionStatsResponse;
 import com.qbank.question.application.dto.QuestionSummary;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -92,6 +94,49 @@ public class QuestionService {
                 bookmarkCountByQuestionId,
                 bookmarkedQuestionIds,
                 dto.userId()
+        );
+    }
+
+    public QuestionDetail.Response getDetail(Long questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.QUESTION_NOT_FOUND));
+
+        if (question.getVisibility() == Visibility.PRIVATE
+                && !Objects.equals(question.getAuthorId(), userId)) {
+            throw new BusinessException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+
+        boolean isMyQuestion = Objects.equals(question.getAuthorId(), userId);
+
+        List<QuestionDetail.Response.TagInfo> tags = questionTagRepository
+                .findAllWithTagByQuestionIdIn(List.of(questionId))
+                .stream()
+                .map(qt -> new QuestionDetail.Response.TagInfo(qt.getTag().getId(), qt.getTag().getName()))
+                .toList();
+
+        String authorNickname = userRepository.findById(question.getAuthorId())
+                .map(User::getNickname)
+                .orElse("알 수 없음");
+
+        boolean isBookmarked = userId != null
+                && bookmarkRepository.existsByUserIdAndQuestionId(userId, questionId);
+        long bookmarkCount = bookmarkRepository.countByQuestionId(questionId);
+
+        return new QuestionDetail.Response(
+                question.getId(),
+                question.getTitle(),
+                tags,
+                question.getCareerLevel(),
+                question.getDifficulty(),
+                question.getVisibility(),
+                authorNickname,
+                isMyQuestion,
+                isBookmarked,
+                bookmarkCount,
+                isMyQuestion ? question.getMyNotes() : null,
+                isMyQuestion ? question.getKeyPoints() : List.of(),
+                isMyQuestion ? question.getMemo() : null,
+                question.getCreatedAt()
         );
     }
 
