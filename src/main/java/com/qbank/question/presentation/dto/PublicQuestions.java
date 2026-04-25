@@ -14,7 +14,8 @@ public class PublicQuestions {
             String keyword,
             List<Long> tagIds,
             String careerLevel,
-            String difficulty
+            String difficulty,
+            String sort
     ) {
 
         public CareerLevel getCareerLevel() {
@@ -25,8 +26,12 @@ public class PublicQuestions {
             return difficulty != null ? Difficulty.of(difficulty).orElse(null) : null;
         }
 
+        public boolean isBookmarkSort() {
+            return "BOOKMARK_COUNT".equals(sort);
+        }
+
         public QuestionSummary.Request to(Pageable pageable, Long userId) {
-            return new QuestionSummary.Request(keyword, tagIds, getCareerLevel(), getDifficulty(), pageable, userId);
+            return new QuestionSummary.Request(keyword, tagIds, getCareerLevel(), getDifficulty(), pageable, userId, sort);
         }
     }
 

@@ -20,7 +20,8 @@ public class QuestionSummary {
             CareerLevel careerLevel,
             Difficulty difficulty,
             Pageable pageable,
-            Long userId
+            Long userId,
+            String sort
     ) {
     }
 

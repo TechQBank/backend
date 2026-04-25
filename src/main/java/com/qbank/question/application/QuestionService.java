@@ -48,8 +48,15 @@ public class QuestionService {
     private final AnswerRepository answerRepository;
 
     public Page<QuestionSummary.Response> getPublicQuestions(QuestionSummary.Request dto) {
-        Specification<Question> spec = QuestionSpecification.publicSearch(QuestionSearchCondition.of(dto));
-        Page<Question> questions = questionRepository.findAll(spec, dto.pageable());
+        Page<Question> questions;
+
+        if ("BOOKMARK_COUNT".equals(dto.sort())) {
+            questions = questionRepository.findPublicByBookmarkCount(dto.pageable());
+        } else {
+            Specification<Question> spec = QuestionSpecification.publicSearch(QuestionSearchCondition.of(dto));
+            questions = questionRepository.findAll(spec, dto.pageable());
+        }
+
         if (questions.isEmpty()) return Page.empty(dto.pageable());
         return enrich(questions, dto.userId());
     }

@@ -31,8 +31,14 @@ public class QuestionController {
     @GetMapping
     public Page<PublicQuestions.Response> getPublicQuestions(
             PublicQuestions.Request dto,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
             @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+
+        // BOOKMARK_COUNT 정렬 시 Pageable에 sort 속성을 넣으면 쿼리 ORDER BY와 충돌하므로 제외
+        Pageable pageable = dto.isBookmarkSort()
+                ? PageRequest.of(page, size)
+                : PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         return questionService.getPublicQuestions(dto.to(pageable, userId)).map(PublicQuestions.Response::of);
     }
