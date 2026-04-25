@@ -1,8 +1,11 @@
 package com.qbank.question.application;
 
+import com.qbank.answer.domain.UserQuestionAnswer;
 import com.qbank.bookmark.domain.Bookmark;
 import com.qbank.question.application.dto.QuestionSearchCondition;
 import com.qbank.question.domain.*;
+import com.qbank.review.domain.ReviewStatus;
+import com.qbank.review.domain.UserQuestionReview;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
@@ -79,6 +82,61 @@ public class QuestionSpecification {
             sub.select(b.get("questionId"))
                .where(cb.equal(b.get("userId"), userId));
             return root.get("id").in(sub);
+        };
+    }
+
+    // 내가 등록 | 북마크 | 답변 | 복습 설정한 질문
+    public static Specification<Question> isStudyQuestion(Long userId) {
+        return (root, query, cb) -> {
+            Subquery<Long> bookmarkSub = query.subquery(Long.class);
+            Root<Bookmark> b = bookmarkSub.from(Bookmark.class);
+            bookmarkSub.select(b.get("questionId")).where(cb.equal(b.get("userId"), userId));
+
+            Subquery<Long> answerSub = query.subquery(Long.class);
+            Root<UserQuestionAnswer> a = answerSub.from(UserQuestionAnswer.class);
+            answerSub.select(a.get("questionId")).where(cb.equal(a.get("userId"), userId));
+
+            Subquery<Long> reviewSub = query.subquery(Long.class);
+            Root<UserQuestionReview> r = reviewSub.from(UserQuestionReview.class);
+            reviewSub.select(r.get("questionId")).where(cb.equal(r.get("userId"), userId));
+
+            return cb.or(
+                    cb.equal(root.get("authorId"), userId),
+                    root.get("id").in(bookmarkSub),
+                    root.get("id").in(answerSub),
+                    root.get("id").in(reviewSub)
+            );
+        };
+    }
+
+    public static Specification<Question> hasReviewStatus(Long userId, ReviewStatus reviewStatus) {
+        return (root, query, cb) -> {
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<UserQuestionReview> r = sub.from(UserQuestionReview.class);
+            sub.select(r.get("questionId"))
+               .where(cb.and(
+                       cb.equal(r.get("userId"), userId),
+                       cb.equal(r.get("status"), reviewStatus)
+               ));
+            return root.get("id").in(sub);
+        };
+    }
+
+    public static Specification<Question> hasAnswerWritten(Long userId) {
+        return (root, query, cb) -> {
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<UserQuestionAnswer> a = sub.from(UserQuestionAnswer.class);
+            sub.select(a.get("questionId")).where(cb.equal(a.get("userId"), userId));
+            return root.get("id").in(sub);
+        };
+    }
+
+    public static Specification<Question> hasNoAnswer(Long userId) {
+        return (root, query, cb) -> {
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<UserQuestionAnswer> a = sub.from(UserQuestionAnswer.class);
+            sub.select(a.get("questionId")).where(cb.equal(a.get("userId"), userId));
+            return cb.not(root.get("id").in(sub));
         };
     }
 

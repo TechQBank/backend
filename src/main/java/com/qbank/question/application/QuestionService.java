@@ -4,18 +4,24 @@ import com.qbank.bookmark.domain.BookmarkCountProjection;
 import com.qbank.bookmark.domain.BookmarkRepository;
 import com.qbank.common.exception.BusinessException;
 import com.qbank.common.exception.ErrorCode;
+import com.qbank.answer.domain.AnswerRepository;
 import com.qbank.question.application.dto.QuestionDetail;
 import com.qbank.question.application.dto.QuestionSearchCondition;
 import com.qbank.question.application.dto.QuestionStatsResponse;
 import com.qbank.question.application.dto.QuestionSummary;
 import com.qbank.question.application.dto.RegisterQuestion;
+import com.qbank.question.application.dto.StudyQuestionSummary;
 import com.qbank.question.domain.*;
+import com.qbank.review.domain.ReviewRepository;
+import com.qbank.review.domain.ReviewStatus;
+import com.qbank.review.domain.UserQuestionReview;
 import com.qbank.tag.domain.Tag;
 import com.qbank.tag.domain.TagRepository;
 import com.qbank.user.domain.User;
 import com.qbank.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -38,6 +44,8 @@ public class QuestionService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final ReviewRepository reviewRepository;
+    private final AnswerRepository answerRepository;
 
     public Page<QuestionSummary.Response> getPublicQuestions(QuestionSummary.Request dto) {
         Specification<Question> spec = QuestionSpecification.publicSearch(QuestionSearchCondition.of(dto));
@@ -97,6 +105,68 @@ public class QuestionService {
         return bookmarkRepository.countByQuestionIdIn(questionIds)
                 .stream()
                 .collect(Collectors.toMap(BookmarkCountProjection::getQuestionId, BookmarkCountProjection::getCount));
+    }
+
+    public Page<StudyQuestionSummary> getStudyQuestions(ReviewStatus reviewStatus,
+                                                        List<Long> tagIds,
+                                                        Boolean hasAnswer,
+                                                        Pageable pageable,
+                                                        Long userId) {
+
+        Specification<Question> spec = buildStudySpec(userId, reviewStatus, tagIds, hasAnswer);
+        Page<Question> questions = questionRepository.findAll(spec, pageable);
+        if (questions.isEmpty()) return Page.empty(pageable);
+
+        List<Long> questionIds = questions.getContent().stream().map(Question::getId).toList();
+        Set<Long> authorIds = questions.getContent().stream().map(Question::getAuthorId).collect(Collectors.toSet());
+
+        Map<Long, List<StudyQuestionSummary.TagInfo>> tagsByQuestionId =
+                questionTagRepository.findAllWithTagByQuestionIdIn(questionIds)
+                        .stream()
+                        .collect(Collectors.groupingBy(
+                                qt -> qt.getQuestion().getId(),
+                                Collectors.mapping(
+                                        qt -> new StudyQuestionSummary.TagInfo(qt.getTag().getId(), qt.getTag().getName()),
+                                        Collectors.toList()
+                                )
+                        ));
+
+        Map<Long, String> nicknameByAuthorId = buildNicknameMap(authorIds);
+        Map<Long, Long> bookmarkCountByQuestionId = buildBookmarkCountMap(questionIds);
+        Set<Long> bookmarkedIds = new HashSet<>(bookmarkRepository.findBookmarkedQuestionIds(userId, questionIds));
+
+        Map<Long, ReviewStatus> reviewStatusByQuestionId = reviewRepository
+                .findAllByUserIdAndQuestionIdIn(userId, questionIds)
+                .stream()
+                .collect(Collectors.toMap(UserQuestionReview::getQuestionId, UserQuestionReview::getStatus));
+
+        Set<Long> answeredIds = new HashSet<>(answerRepository.findAnsweredQuestionIds(userId, questionIds));
+
+        return questions.map(q -> new StudyQuestionSummary(
+                q.getId(),
+                q.getTitle(),
+                tagsByQuestionId.getOrDefault(q.getId(), List.of()),
+                q.getCareerLevel(),
+                q.getDifficulty(),
+                q.getVisibility(),
+                nicknameByAuthorId.getOrDefault(q.getAuthorId(), "알 수 없음"),
+                Objects.equals(q.getAuthorId(), userId),
+                bookmarkedIds.contains(q.getId()),
+                bookmarkCountByQuestionId.getOrDefault(q.getId(), 0L),
+                q.getCreatedAt(),
+                reviewStatusByQuestionId.get(q.getId()),
+                answeredIds.contains(q.getId())
+        ));
+    }
+
+    private Specification<Question> buildStudySpec(Long userId, ReviewStatus reviewStatus,
+                                                    List<Long> tagIds, Boolean hasAnswer) {
+        Specification<Question> spec = QuestionSpecification.isStudyQuestion(userId);
+        if (reviewStatus != null) spec = spec.and(QuestionSpecification.hasReviewStatus(userId, reviewStatus));
+        if (tagIds != null && !tagIds.isEmpty()) spec = spec.and(QuestionSpecification.hasAnyTagId(tagIds));
+        if (Boolean.TRUE.equals(hasAnswer))  spec = spec.and(QuestionSpecification.hasAnswerWritten(userId));
+        if (Boolean.FALSE.equals(hasAnswer)) spec = spec.and(QuestionSpecification.hasNoAnswer(userId));
+        return spec;
     }
 
     public QuestionDetail.Response getDetail(Long questionId, Long userId) {
