@@ -110,10 +110,13 @@ public class QuestionService {
     public Page<StudyQuestionSummary> getStudyQuestions(ReviewStatus reviewStatus,
                                                         List<Long> tagIds,
                                                         Boolean hasAnswer,
+                                                        Boolean isMine,
+                                                        Boolean isBookmarked,
+                                                        Visibility visibility,
                                                         Pageable pageable,
                                                         Long userId) {
 
-        Specification<Question> spec = buildStudySpec(userId, reviewStatus, tagIds, hasAnswer);
+        Specification<Question> spec = buildStudySpec(userId, reviewStatus, tagIds, hasAnswer, isMine, isBookmarked, visibility);
         Page<Question> questions = questionRepository.findAll(spec, pageable);
         if (questions.isEmpty()) return Page.empty(pageable);
 
@@ -160,12 +163,17 @@ public class QuestionService {
     }
 
     private Specification<Question> buildStudySpec(Long userId, ReviewStatus reviewStatus,
-                                                    List<Long> tagIds, Boolean hasAnswer) {
+                                                    List<Long> tagIds, Boolean hasAnswer,
+                                                    Boolean isMine, Boolean isBookmarked,
+                                                    Visibility visibility) {
         Specification<Question> spec = QuestionSpecification.isStudyQuestion(userId);
-        if (reviewStatus != null) spec = spec.and(QuestionSpecification.hasReviewStatus(userId, reviewStatus));
+        if (reviewStatus != null)              spec = spec.and(QuestionSpecification.hasReviewStatus(userId, reviewStatus));
         if (tagIds != null && !tagIds.isEmpty()) spec = spec.and(QuestionSpecification.hasAnyTagId(tagIds));
-        if (Boolean.TRUE.equals(hasAnswer))  spec = spec.and(QuestionSpecification.hasAnswerWritten(userId));
-        if (Boolean.FALSE.equals(hasAnswer)) spec = spec.and(QuestionSpecification.hasNoAnswer(userId));
+        if (Boolean.TRUE.equals(hasAnswer))    spec = spec.and(QuestionSpecification.hasAnswerWritten(userId));
+        if (Boolean.FALSE.equals(hasAnswer))   spec = spec.and(QuestionSpecification.hasNoAnswer(userId));
+        if (Boolean.TRUE.equals(isMine))       spec = spec.and(QuestionSpecification.isAuthor(userId));
+        if (Boolean.TRUE.equals(isBookmarked)) spec = spec.and(QuestionSpecification.isBookmarkedByUser(userId));
+        if (visibility != null)                spec = spec.and(QuestionSpecification.hasVisibility(visibility));
         return spec;
     }
 

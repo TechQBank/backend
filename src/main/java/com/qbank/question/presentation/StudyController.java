@@ -31,6 +31,8 @@ public class StudyController {
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return questionService.getStudyQuestions(
-                params.getReviewStatus(), params.tagIds(), params.hasAnswer(), pageable, userId);
+                params.getReviewStatus(), params.tagIds(), params.hasAnswer(),
+                params.isMine(), params.isBookmarked(), params.getVisibility(),
+                pageable, userId);
     }
 }
