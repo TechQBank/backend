@@ -1,7 +1,6 @@
 package com.qbank.question.presentation;
 
-import com.qbank.common.exception.BusinessException;
-import com.qbank.common.exception.ErrorCode;
+import com.qbank.auth.SecurityUtils;
 import com.qbank.question.application.QuestionService;
 import com.qbank.question.application.dto.StudyQuestionSummary;
 import com.qbank.question.presentation.dto.StudyQuestions;
@@ -23,12 +22,9 @@ public class StudyController {
     public Page<StudyQuestionSummary> getStudyQuestions(
             StudyQuestions.Request params,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestParam(defaultValue = "20") int size) {
 
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
+        Long userId = SecurityUtils.getCurrentUserId();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return questionService.getStudyQuestions(
                 params.getReviewStatus(), params.tagIds(), params.hasAnswer(),

@@ -2,15 +2,18 @@ USE techqbank;
 
 CREATE TABLE users
 (
-    id         BIGINT       NOT NULL AUTO_INCREMENT,
-    email      VARCHAR(255) NOT NULL,
-    password   VARCHAR(255) NOT NULL,
-    nickname   VARCHAR(100) NOT NULL,
-    avatar_id  INT          NOT NULL DEFAULT 0,
-    created_at DATETIME     NOT NULL,
-    updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id          BIGINT       NOT NULL AUTO_INCREMENT,
+    email       VARCHAR(255),
+    password    VARCHAR(255),
+    nickname    VARCHAR(100) NOT NULL,
+    avatar_id   INT          NOT NULL DEFAULT 0,
+    provider    VARCHAR(50)  NOT NULL DEFAULT 'OAUTH',
+    provider_id VARCHAR(255),
+    created_at  DATETIME     NOT NULL,
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_users_email (email)
+    UNIQUE KEY uk_users_email (email),
+    UNIQUE KEY uk_users_provider (provider, provider_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 

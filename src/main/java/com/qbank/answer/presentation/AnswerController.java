@@ -4,8 +4,7 @@ import com.qbank.answer.application.AnswerService;
 import com.qbank.answer.application.dto.AnswerHistoryResponse;
 import com.qbank.answer.application.dto.AnswerRequest;
 import com.qbank.answer.application.dto.AnswerResponse;
-import com.qbank.common.exception.BusinessException;
-import com.qbank.common.exception.ErrorCode;
+import com.qbank.auth.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,49 +20,29 @@ public class AnswerController {
     private final AnswerService answerService;
 
     @GetMapping
-    public AnswerResponse getAnswer(
-            @PathVariable Long questionId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
-
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-        return answerService.getAnswer(questionId, userId);
+    public AnswerResponse getAnswer(@PathVariable Long questionId) {
+        return answerService.getAnswer(questionId, SecurityUtils.getCurrentUserId());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AnswerResponse createAnswer(
             @PathVariable Long questionId,
-            @Valid @RequestBody AnswerRequest request,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @Valid @RequestBody AnswerRequest request) {
 
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-        return answerService.createAnswer(questionId, request, userId);
+        return answerService.createAnswer(questionId, request, SecurityUtils.getCurrentUserId());
     }
 
     @PutMapping
     public AnswerResponse updateAnswer(
             @PathVariable Long questionId,
-            @Valid @RequestBody AnswerRequest request,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @Valid @RequestBody AnswerRequest request) {
 
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-        return answerService.updateAnswer(questionId, request, userId);
+        return answerService.updateAnswer(questionId, request, SecurityUtils.getCurrentUserId());
     }
 
     @GetMapping("/history")
-    public List<AnswerHistoryResponse> getHistory(
-            @PathVariable Long questionId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
-
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-        return answerService.getHistory(questionId, userId);
+    public List<AnswerHistoryResponse> getHistory(@PathVariable Long questionId) {
+        return answerService.getHistory(questionId, SecurityUtils.getCurrentUserId());
     }
 }
