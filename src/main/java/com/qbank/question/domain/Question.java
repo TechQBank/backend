@@ -55,13 +55,13 @@ public class Question extends BaseEntity {
     private List<QuestionTag> questionTags = new ArrayList<>();
 
     public static Question create(Long authorId, String title, CareerLevel careerLevel,
-                                   Visibility visibility, String myNotes,
-                                   List<String> keyPoints, String memo) {
+                                   Difficulty difficulty, Visibility visibility,
+                                   String myNotes, List<String> keyPoints, String memo) {
         Question q = new Question();
         q.authorId = authorId;
         q.title = title;
         q.careerLevel = careerLevel;
-        q.difficulty = Difficulty.NORMAL;
+        q.difficulty = difficulty != null ? difficulty : Difficulty.NORMAL;
         q.visibility = visibility;
         q.myNotes = myNotes;
         q.keyPoints = keyPoints != null ? keyPoints : new ArrayList<>();
@@ -69,10 +69,11 @@ public class Question extends BaseEntity {
         return q;
     }
 
-    public void update(String title, CareerLevel careerLevel, Visibility visibility,
-                       String myNotes, List<String> keyPoints, String memo) {
+    public void update(String title, CareerLevel careerLevel, Difficulty difficulty,
+                       Visibility visibility, String myNotes, List<String> keyPoints, String memo) {
         this.title = title;
         this.careerLevel = careerLevel;
+        this.difficulty = difficulty != null ? difficulty : Difficulty.NORMAL;
         this.visibility = visibility;
         this.myNotes = myNotes;
         this.keyPoints = keyPoints != null ? keyPoints : new ArrayList<>();

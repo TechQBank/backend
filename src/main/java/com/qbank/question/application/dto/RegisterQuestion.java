@@ -1,6 +1,7 @@
 package com.qbank.question.application.dto;
 
 import com.qbank.question.domain.CareerLevel;
+import com.qbank.question.domain.Difficulty;
 import com.qbank.question.domain.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -23,6 +24,8 @@ public class RegisterQuestion {
             @NotBlank(message = "경력 수준은 필수입니다")
             String careerLevel,
 
+            String difficulty,
+
             @Size(max = 3000, message = "내 정리는 3000자를 초과할 수 없습니다")
             String myNotes,
 
@@ -37,6 +40,11 @@ public class RegisterQuestion {
 
         public CareerLevel getCareerLevel() {
             return careerLevel != null ? CareerLevel.of(careerLevel).orElse(null) : null;
+        }
+
+        public Difficulty getDifficulty() {
+            if (difficulty == null) return Difficulty.NORMAL;
+            return Difficulty.of(difficulty).orElse(Difficulty.NORMAL);
         }
     }
 

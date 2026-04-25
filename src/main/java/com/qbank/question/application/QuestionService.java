@@ -224,6 +224,7 @@ public class QuestionService {
                 userId,
                 request.title(),
                 request.getCareerLevel(),
+                request.getDifficulty(),
                 request.getVisibility(),
                 request.myNotes(),
                 request.keyPoints(),
@@ -253,6 +254,7 @@ public class QuestionService {
         question.update(
                 request.title(),
                 request.getCareerLevel(),
+                request.getDifficulty(),
                 request.getVisibility(),
                 request.myNotes(),
                 request.keyPoints(),
