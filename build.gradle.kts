@@ -1,0 +1,50 @@
+plugins {
+    java
+    id("org.springframework.boot") version "3.5.14"
+    id("io.spring.dependency-management") version "1.1.7"
+}
+
+group = "com.qbank"
+version = "0.0.1-SNAPSHOT"
+description = "tech-q-bank-back"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    // DB
+    runtimeOnly("com.mysql:mysql-connector-j")
+
+    // Docs
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
+
+    // Lombok
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    // Test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:mysql")
+    testImplementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0")
+    testImplementation("org.awaitility:awaitility")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    systemProperty("user.timezone", "UTC")
+}
