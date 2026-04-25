@@ -2,13 +2,15 @@ package com.qbank.question.application;
 
 import com.qbank.bookmark.domain.BookmarkCountProjection;
 import com.qbank.bookmark.domain.BookmarkRepository;
+import com.qbank.common.exception.BusinessException;
+import com.qbank.common.exception.ErrorCode;
 import com.qbank.question.application.dto.QuestionSearchCondition;
 import com.qbank.question.application.dto.QuestionStatsResponse;
 import com.qbank.question.application.dto.QuestionSummary;
-import com.qbank.question.domain.Question;
-import com.qbank.question.domain.QuestionRepository;
-import com.qbank.question.domain.QuestionTagRepository;
-import com.qbank.question.domain.Visibility;
+import com.qbank.question.application.dto.RegisterQuestion;
+import com.qbank.question.domain.*;
+import com.qbank.tag.domain.Tag;
+import com.qbank.tag.domain.TagRepository;
 import com.qbank.user.domain.User;
 import com.qbank.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final QuestionTagRepository questionTagRepository;
     private final UserRepository userRepository;
+    private final TagRepository tagRepository;
     private final BookmarkRepository bookmarkRepository;
 
     public Page<QuestionSummary.Response> getPublicQuestions(QuestionSummary.Request dto) {
@@ -90,6 +93,42 @@ public class QuestionService {
                 bookmarkedQuestionIds,
                 dto.userId()
         );
+    }
+
+    @Transactional
+    public RegisterQuestion.Response register(RegisterQuestion.Request request, Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        List<Tag> tags = resolveTags(request.tagIds());
+
+        Question question = Question.create(
+                userId,
+                request.title(),
+                request.getCareerLevel(),
+                request.getVisibility(),
+                request.myNotes(),
+                request.keyPoints(),
+                request.memo()
+        );
+        Question saved = questionRepository.save(question);
+
+        List<QuestionTag> questionTags = tags.stream()
+                .map(tag -> QuestionTag.of(saved, tag))
+                .toList();
+        questionTagRepository.saveAll(questionTags);
+
+        return new RegisterQuestion.Response(saved.getId());
+    }
+
+    private List<Tag> resolveTags(List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) return List.of();
+        List<Tag> found = tagRepository.findAllById(tagIds);
+        if (found.size() != tagIds.size()) {
+            throw new BusinessException(ErrorCode.TAG_NOT_FOUND);
+        }
+        return found;
     }
 
     public QuestionStatsResponse getStats(Long userId) {

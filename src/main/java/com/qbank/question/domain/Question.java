@@ -1,7 +1,7 @@
 package com.qbank.question.domain;
 
 import com.qbank.common.entity.BaseEntity;
-import com.qbank.tag.domain.Tag;
+import com.qbank.common.util.StringListConverter;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -41,7 +41,31 @@ public class Question extends BaseEntity {
     @Column(nullable = false, length = 10)
     private Visibility visibility;
 
+    @Column(name = "my_notes")
+    private String myNotes;
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "key_points")
+    private List<String> keyPoints = new ArrayList<>();
+
+    @Column(length = 500)
+    private String memo;
+
     @OneToMany(mappedBy = "question")
     private List<QuestionTag> questionTags = new ArrayList<>();
 
+    public static Question create(Long authorId, String title, CareerLevel careerLevel,
+                                   Visibility visibility, String myNotes,
+                                   List<String> keyPoints, String memo) {
+        Question q = new Question();
+        q.authorId = authorId;
+        q.title = title;
+        q.careerLevel = careerLevel;
+        q.difficulty = Difficulty.NORMAL;
+        q.visibility = visibility;
+        q.myNotes = myNotes;
+        q.keyPoints = keyPoints != null ? keyPoints : new ArrayList<>();
+        q.memo = memo;
+        return q;
+    }
 }
