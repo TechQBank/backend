@@ -68,4 +68,14 @@ public class Question extends BaseEntity {
         q.memo = memo;
         return q;
     }
+
+    public void update(String title, CareerLevel careerLevel, Visibility visibility,
+                       String myNotes, List<String> keyPoints, String memo) {
+        this.title = title;
+        this.careerLevel = careerLevel;
+        this.visibility = visibility;
+        this.myNotes = myNotes;
+        this.keyPoints = keyPoints != null ? keyPoints : new ArrayList<>();
+        this.memo = memo;
+    }
 }

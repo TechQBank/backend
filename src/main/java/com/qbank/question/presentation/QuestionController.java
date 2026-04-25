@@ -47,6 +47,30 @@ public class QuestionController {
         return questionService.register(request, userId);
     }
 
+    @PutMapping("/{id}")
+    public void update(
+            @PathVariable Long id,
+            @Valid @RequestBody RegisterQuestion.Request request,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+        questionService.update(id, request, userId);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+        questionService.delete(id, userId);
+    }
+
     @GetMapping("/{id}")
     public QuestionDetail.Response getDetail(
             @PathVariable Long id,

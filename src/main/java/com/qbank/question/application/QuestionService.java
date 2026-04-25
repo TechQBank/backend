@@ -167,6 +167,46 @@ public class QuestionService {
         return new RegisterQuestion.Response(saved.getId());
     }
 
+    @Transactional
+    public void update(Long questionId, RegisterQuestion.Request request, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.QUESTION_NOT_FOUND));
+
+        if (!Objects.equals(question.getAuthorId(), userId)) {
+            throw new BusinessException(ErrorCode.QUESTION_ACCESS_DENIED);
+        }
+
+        List<Tag> tags = resolveTags(request.tagIds());
+
+        question.update(
+                request.title(),
+                request.getCareerLevel(),
+                request.getVisibility(),
+                request.myNotes(),
+                request.keyPoints(),
+                request.memo()
+        );
+
+        questionTagRepository.deleteAllByQuestionId(questionId);
+        List<QuestionTag> newTags = tags.stream()
+                .map(tag -> QuestionTag.of(question, tag))
+                .toList();
+        questionTagRepository.saveAll(newTags);
+    }
+
+    @Transactional
+    public void delete(Long questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.QUESTION_NOT_FOUND));
+
+        if (!Objects.equals(question.getAuthorId(), userId)) {
+            throw new BusinessException(ErrorCode.QUESTION_ACCESS_DENIED);
+        }
+
+        questionTagRepository.deleteAllByQuestionId(questionId);
+        questionRepository.delete(question);
+    }
+
     private List<Tag> resolveTags(List<Long> tagIds) {
         if (tagIds == null || tagIds.isEmpty()) return List.of();
         List<Tag> found = tagRepository.findAllById(tagIds);
