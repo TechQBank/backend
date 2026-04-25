@@ -1,5 +1,6 @@
 package com.qbank.question.application;
 
+import com.qbank.bookmark.domain.Bookmark;
 import com.qbank.question.application.dto.QuestionSearchCondition;
 import com.qbank.question.domain.*;
 import jakarta.persistence.criteria.Root;
@@ -56,6 +57,29 @@ public class QuestionSpecification {
 
         return (root, query, cb) ->
                 cb.equal(root.get("difficulty"), difficulty);
+    }
+
+    public static Specification<Question> isAuthor(Long authorId) {
+        return (root, query, cb) -> cb.equal(root.get("authorId"), authorId);
+    }
+
+    public static Specification<Question> hasVisibility(Visibility visibility) {
+        if (visibility == null) return Specification.unrestricted();
+        return (root, query, cb) -> cb.equal(root.get("visibility"), visibility);
+    }
+
+    public static Specification<Question> myQuestions(Long authorId, Visibility visibility) {
+        return isAuthor(authorId).and(hasVisibility(visibility));
+    }
+
+    public static Specification<Question> isBookmarkedByUser(Long userId) {
+        return (root, query, cb) -> {
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<Bookmark> b = sub.from(Bookmark.class);
+            sub.select(b.get("questionId"))
+               .where(cb.equal(b.get("userId"), userId));
+            return root.get("id").in(sub);
+        };
     }
 
     public static Specification<Question> hasAnyTagId(List<Long> tagIds) {

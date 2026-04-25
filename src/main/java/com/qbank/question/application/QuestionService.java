@@ -16,6 +16,7 @@ import com.qbank.user.domain.User;
 import com.qbank.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,62 +40,63 @@ public class QuestionService {
     private final BookmarkRepository bookmarkRepository;
 
     public Page<QuestionSummary.Response> getPublicQuestions(QuestionSummary.Request dto) {
-
         Specification<Question> spec = QuestionSpecification.publicSearch(QuestionSearchCondition.of(dto));
-
         Page<Question> questions = questionRepository.findAll(spec, dto.pageable());
+        if (questions.isEmpty()) return Page.empty(dto.pageable());
+        return enrich(questions, dto.userId());
+    }
 
-        if (questions.isEmpty()) {
-            return Page.empty(dto.pageable());
-        }
+    public Page<QuestionSummary.Response> getMyQuestions(Visibility visibility, Pageable pageable, Long userId) {
+        Specification<Question> spec = QuestionSpecification.myQuestions(userId, visibility);
+        Page<Question> questions = questionRepository.findAll(spec, pageable);
+        if (questions.isEmpty()) return Page.empty(pageable);
+        return enrich(questions, userId);
+    }
 
-        List<Long> questionIds = questions.getContent().stream()
-                .map(Question::getId)
-                .toList();
+    public Page<QuestionSummary.Response> getBookmarkedQuestions(Pageable pageable, Long userId) {
+        Specification<Question> spec = QuestionSpecification.isBookmarkedByUser(userId);
+        Page<Question> questions = questionRepository.findAll(spec, pageable);
+        if (questions.isEmpty()) return Page.empty(pageable);
+        return enrich(questions, userId);
+    }
 
-        Set<Long> authorIds = questions.getContent().stream()
-                .map(Question::getAuthorId)
-                .collect(Collectors.toSet());
+    private Page<QuestionSummary.Response> enrich(Page<Question> questions, Long userId) {
+        List<Long> questionIds = questions.getContent().stream().map(Question::getId).toList();
+        Set<Long> authorIds = questions.getContent().stream().map(Question::getAuthorId).collect(Collectors.toSet());
 
-        // 태그 배치 조회
-        Map<Long, List<QuestionSummary.Response.TagInfo>> tagsByQuestionId =
-                questionTagRepository.findAllWithTagByQuestionIdIn(questionIds)
-                        .stream()
-                        .collect(Collectors.groupingBy(
-                                qt -> qt.getQuestion().getId(),
-                                Collectors.mapping(
-                                        qt -> new QuestionSummary.Response.TagInfo(qt.getTag().getId(), qt.getTag().getName()),
-                                        Collectors.toList()
-                                )
-                        ));
-
-        // 작성자 닉네임 배치 조회
-        Map<Long, String> nicknameByAuthorId = userRepository.findAllById(authorIds)
-                .stream()
-                .collect(Collectors.toMap(User::getId, User::getNickname));
-
-        // 북마크 수 배치 조회
-        Map<Long, Long> bookmarkCountByQuestionId = bookmarkRepository
-                .countByQuestionIdIn(questionIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        BookmarkCountProjection::getQuestionId,
-                        BookmarkCountProjection::getCount
-                ));
-
-        // 내가 북마크한 질문 ID 조회
-        Set<Long> bookmarkedQuestionIds = dto.userId() != null
-                ? new HashSet<>(bookmarkRepository.findBookmarkedQuestionIds(dto.userId(), questionIds))
+        Map<Long, List<QuestionSummary.Response.TagInfo>> tagsByQuestionId = buildTagMap(questionIds);
+        Map<Long, String> nicknameByAuthorId = buildNicknameMap(authorIds);
+        Map<Long, Long> bookmarkCountByQuestionId = buildBookmarkCountMap(questionIds);
+        Set<Long> bookmarkedIds = userId != null
+                ? new HashSet<>(bookmarkRepository.findBookmarkedQuestionIds(userId, questionIds))
                 : Set.of();
 
-        return QuestionSummary.Response.of(
-                questions,
-                tagsByQuestionId,
-                nicknameByAuthorId,
-                bookmarkCountByQuestionId,
-                bookmarkedQuestionIds,
-                dto.userId()
-        );
+        return QuestionSummary.Response.of(questions, tagsByQuestionId, nicknameByAuthorId,
+                bookmarkCountByQuestionId, bookmarkedIds, userId);
+    }
+
+    private Map<Long, List<QuestionSummary.Response.TagInfo>> buildTagMap(List<Long> questionIds) {
+        return questionTagRepository.findAllWithTagByQuestionIdIn(questionIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        qt -> qt.getQuestion().getId(),
+                        Collectors.mapping(
+                                qt -> new QuestionSummary.Response.TagInfo(qt.getTag().getId(), qt.getTag().getName()),
+                                Collectors.toList()
+                        )
+                ));
+    }
+
+    private Map<Long, String> buildNicknameMap(Set<Long> authorIds) {
+        return userRepository.findAllById(authorIds)
+                .stream()
+                .collect(Collectors.toMap(User::getId, User::getNickname));
+    }
+
+    private Map<Long, Long> buildBookmarkCountMap(List<Long> questionIds) {
+        return bookmarkRepository.countByQuestionIdIn(questionIds)
+                .stream()
+                .collect(Collectors.toMap(BookmarkCountProjection::getQuestionId, BookmarkCountProjection::getCount));
     }
 
     public QuestionDetail.Response getDetail(Long questionId, Long userId) {
