@@ -25,4 +25,11 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String nickname;
 
+    @Column(nullable = false)
+    private int avatarId;
+
+    public void updateProfile(String nickname, int avatarId) {
+        this.nickname = nickname;
+        this.avatarId = avatarId;
+    }
 }
