@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface QuestionRepository extends JpaRepository<Question, Long>,
         JpaSpecificationExecutor<Question> {
@@ -21,4 +22,23 @@ public interface QuestionRepository extends JpaRepository<Question, Long>,
             countQuery = "SELECT COUNT(q) FROM Question q WHERE q.visibility = 'PUBLIC'"
     )
     Page<Question> findPublicByBookmarkCount(Pageable pageable);
+
+    @Query(
+            value = """
+                    SELECT q FROM Question q
+                    WHERE q.authorId IN (
+                        SELECT f.followeeId FROM Follow f WHERE f.followerId = :userId
+                    )
+                    AND q.visibility = 'PUBLIC'
+                    ORDER BY q.createdAt DESC
+                    """,
+            countQuery = """
+                    SELECT COUNT(q) FROM Question q
+                    WHERE q.authorId IN (
+                        SELECT f.followeeId FROM Follow f WHERE f.followerId = :userId
+                    )
+                    AND q.visibility = 'PUBLIC'
+                    """
+    )
+    Page<Question> findFeedQuestions(@Param("userId") Long userId, Pageable pageable);
 }

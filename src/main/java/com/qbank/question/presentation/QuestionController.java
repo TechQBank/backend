@@ -93,6 +93,15 @@ public class QuestionController {
         return questionService.getBookmarkedQuestions(pageable, userId).map(PublicQuestions.Response::of);
     }
 
+    @GetMapping("/feed")
+    public SliceResponse<PublicQuestions.Response> getFeed(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Long userId = SecurityUtils.getCurrentUserId();
+        return questionService.getFeed(userId, PageRequest.of(page, size)).map(PublicQuestions.Response::of);
+    }
+
     @GetMapping("/stats")
     public QuestionStats.Response getStats() {
         return QuestionStats.Response.of(questionService.getStats(SecurityUtils.getCurrentUserId()));

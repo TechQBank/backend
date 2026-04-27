@@ -85,6 +85,15 @@ public class QuestionService {
         return enrichAsSlice(hasNext ? fetched.subList(0, size) : fetched, hasNext, pageable.getPageNumber(), userId);
     }
 
+    public SliceResponse<QuestionSummary.Response> getFeed(Long userId, Pageable pageable) {
+        int size = pageable.getPageSize();
+        Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1);
+        List<Question> fetched = new ArrayList<>(
+                questionRepository.findFeedQuestions(userId, slicePageable).getContent());
+        boolean hasNext = fetched.size() > size;
+        return enrichAsSlice(hasNext ? fetched.subList(0, size) : fetched, hasNext, pageable.getPageNumber(), userId);
+    }
+
     private SliceResponse<QuestionSummary.Response> enrichAsSlice(
             List<Question> items, boolean hasNext, int pageNumber, Long userId) {
         if (items.isEmpty()) return SliceResponse.empty(pageNumber);
