@@ -19,6 +19,9 @@ public enum ErrorCode {
     // 태그
     TAG_NOT_FOUND("T001", "존재하지 않는 태그가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
 
+    // 팔로우
+    FOLLOW_SELF("F001", "자기 자신을 팔로우할 수 없습니다.", HttpStatus.BAD_REQUEST),
+
     // 북마크
     BOOKMARK_ALREADY_EXISTS("B001", "이미 북마크한 질문입니다.", HttpStatus.CONFLICT),
     BOOKMARK_NOT_FOUND("B002", "북마크를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

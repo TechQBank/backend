@@ -118,3 +118,16 @@ CREATE TABLE bookmarks
     UNIQUE KEY uk_bookmarks (user_id, question_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+
+CREATE TABLE follows
+(
+    id          BIGINT   NOT NULL AUTO_INCREMENT,
+    follower_id BIGINT   NOT NULL,
+    followee_id BIGINT   NOT NULL,
+    created_at  DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_follows (follower_id, followee_id),
+    KEY idx_follows_follower_id (follower_id),
+    KEY idx_follows_followee_id (followee_id),
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
