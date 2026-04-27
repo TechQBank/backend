@@ -31,7 +31,11 @@ public enum ErrorCode {
 
     // 답변
     ANSWER_NOT_FOUND("AN001", "답변을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    ANSWER_ALREADY_EXISTS("AN002", "이미 답변이 존재합니다. 수정은 PUT을 사용하세요.", HttpStatus.CONFLICT);
+    ANSWER_ALREADY_EXISTS("AN002", "이미 답변이 존재합니다. 수정은 PUT을 사용하세요.", HttpStatus.CONFLICT),
+
+    // 그룹
+    GROUP_NOT_FOUND("GR001", "그룹을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    GROUP_ACCESS_DENIED("GR002", "그룹에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
 
     private final String code;
     private final String message;

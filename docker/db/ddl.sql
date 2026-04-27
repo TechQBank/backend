@@ -144,3 +144,28 @@ CREATE TABLE answer_likes
     KEY idx_answer_likes_answer_id (answer_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+
+CREATE TABLE question_groups
+(
+    id          BIGINT       NOT NULL AUTO_INCREMENT,
+    user_id     BIGINT       NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    description VARCHAR(500),
+    is_public   BOOLEAN      NOT NULL DEFAULT false,
+    created_at  DATETIME     NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_question_groups_user_id (user_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+CREATE TABLE question_group_items
+(
+    id          BIGINT   NOT NULL AUTO_INCREMENT,
+    group_id    BIGINT   NOT NULL,
+    question_id BIGINT   NOT NULL,
+    added_at    DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_question_group_items (group_id, question_id),
+    KEY idx_question_group_items_group_id (group_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+

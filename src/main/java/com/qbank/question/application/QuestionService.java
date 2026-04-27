@@ -156,6 +156,18 @@ public class QuestionService {
         List<Question> items = hasNext ? fetched.subList(0, size) : fetched;
         if (items.isEmpty()) return SliceResponse.empty(pageable.getPageNumber());
 
+        List<StudyQuestionSummary> responses = buildStudyQuestionSummaries(items, userId);
+        return new SliceResponse<>(responses, hasNext, pageable.getPageNumber());
+    }
+
+    public List<StudyQuestionSummary> getStudyQuestionsByIds(List<Long> questionIds, Long userId) {
+        if (questionIds.isEmpty()) return List.of();
+        List<Question> items = questionRepository.findAllById(questionIds);
+        if (items.isEmpty()) return List.of();
+        return buildStudyQuestionSummaries(items, userId);
+    }
+
+    private List<StudyQuestionSummary> buildStudyQuestionSummaries(List<Question> items, Long userId) {
         List<Long> questionIds = items.stream().map(Question::getId).toList();
         Set<Long> authorIds = items.stream().map(Question::getAuthorId).collect(Collectors.toSet());
 
@@ -181,7 +193,7 @@ public class QuestionService {
 
         Set<Long> answeredIds = new HashSet<>(answerRepository.findAnsweredQuestionIds(userId, questionIds));
 
-        List<StudyQuestionSummary> responses = items.stream().map(q -> new StudyQuestionSummary(
+        return items.stream().map(q -> new StudyQuestionSummary(
                 q.getId(),
                 q.getTitle(),
                 tagsByQuestionId.getOrDefault(q.getId(), List.of()),
@@ -196,8 +208,6 @@ public class QuestionService {
                 reviewStatusByQuestionId.get(q.getId()),
                 answeredIds.contains(q.getId())
         )).toList();
-
-        return new SliceResponse<>(responses, hasNext, pageable.getPageNumber());
     }
 
     private Specification<Question> buildStudySpec(Long userId, ReviewStatus reviewStatus,
