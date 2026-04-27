@@ -4,12 +4,12 @@ import com.qbank.question.domain.CareerLevel;
 import com.qbank.question.domain.Difficulty;
 import com.qbank.question.domain.Question;
 import com.qbank.question.domain.Visibility;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class QuestionSummary {
@@ -40,13 +40,13 @@ public class QuestionSummary {
     ) {
         public record TagInfo(Long id, String name) {}
 
-        public static Page<Response> of(Page<Question> questions,
-                                        Map<Long, List<TagInfo>> tagsByQuestionId,
-                                        Map<Long, String> nicknameByAuthorId,
-                                        Map<Long, Long> bookmarkCountByQuestionId,
-                                        Set<Long> bookmarkedQuestionIds,
-                                        Long userId) {
-            return questions.map(q -> new Response(
+        public static List<Response> of(List<Question> questions,
+                                         Map<Long, List<TagInfo>> tagsByQuestionId,
+                                         Map<Long, String> nicknameByAuthorId,
+                                         Map<Long, Long> bookmarkCountByQuestionId,
+                                         Set<Long> bookmarkedQuestionIds,
+                                         Long userId) {
+            return questions.stream().map(q -> new Response(
                     q.getId(),
                     q.getTitle(),
                     tagsByQuestionId.getOrDefault(q.getId(), List.of()),
@@ -54,11 +54,11 @@ public class QuestionSummary {
                     q.getDifficulty(),
                     q.getVisibility(),
                     nicknameByAuthorId.getOrDefault(q.getAuthorId(), "알 수 없음"),
-                    q.getAuthorId().equals(userId),
+                    Objects.equals(q.getAuthorId(), userId),
                     bookmarkedQuestionIds.contains(q.getId()),
                     bookmarkCountByQuestionId.getOrDefault(q.getId(), 0L),
                     q.getCreatedAt()
-            ));
+            )).toList();
         }
     }
 

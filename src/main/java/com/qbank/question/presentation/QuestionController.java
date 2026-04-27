@@ -3,6 +3,7 @@ package com.qbank.question.presentation;
 import com.qbank.auth.SecurityUtils;
 import com.qbank.bookmark.application.BookmarkService;
 import com.qbank.bookmark.application.dto.BookmarkToggle;
+import com.qbank.common.response.SliceResponse;
 import com.qbank.question.application.QuestionService;
 import com.qbank.question.application.dto.QuestionDetail;
 import com.qbank.question.application.dto.RegisterQuestion;
@@ -11,7 +12,6 @@ import com.qbank.question.presentation.dto.PublicQuestions;
 import com.qbank.question.presentation.dto.QuestionStats;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,7 +27,7 @@ public class QuestionController {
     private final BookmarkService bookmarkService;
 
     @GetMapping
-    public Page<PublicQuestions.Response> getPublicQuestions(
+    public SliceResponse<PublicQuestions.Response> getPublicQuestions(
             PublicQuestions.Request dto,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -72,7 +72,7 @@ public class QuestionController {
     }
 
     @GetMapping("/my")
-    public Page<PublicQuestions.Response> getMyQuestions(
+    public SliceResponse<PublicQuestions.Response> getMyQuestions(
             MyQuestions.Request params,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -84,7 +84,7 @@ public class QuestionController {
     }
 
     @GetMapping("/bookmarks")
-    public Page<PublicQuestions.Response> getBookmarkedQuestions(
+    public SliceResponse<PublicQuestions.Response> getBookmarkedQuestions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 

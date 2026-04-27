@@ -5,6 +5,7 @@ import com.qbank.bookmark.domain.BookmarkRepository;
 import com.qbank.common.exception.BusinessException;
 import com.qbank.common.exception.ErrorCode;
 import com.qbank.answer.domain.AnswerRepository;
+import com.qbank.common.response.SliceResponse;
 import com.qbank.question.application.dto.QuestionDetail;
 import com.qbank.question.application.dto.QuestionSearchCondition;
 import com.qbank.question.application.dto.QuestionStatsResponse;
@@ -27,6 +28,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,37 +49,48 @@ public class QuestionService {
     private final ReviewRepository reviewRepository;
     private final AnswerRepository answerRepository;
 
-    public Page<QuestionSummary.Response> getPublicQuestions(QuestionSummary.Request dto) {
-        Page<Question> questions;
+    public SliceResponse<QuestionSummary.Response> getPublicQuestions(QuestionSummary.Request dto) {
+        int size = dto.pageable().getPageSize();
+        int page = dto.pageable().getPageNumber();
+        Pageable slicePageable = PageRequest.of(page, size + 1, dto.pageable().getSort());
 
+        List<Question> fetched;
         if ("BOOKMARK_COUNT".equals(dto.sort())) {
-            questions = questionRepository.findPublicByBookmarkCount(dto.pageable());
+            fetched = new ArrayList<>(questionRepository.findPublicByBookmarkCount(slicePageable).getContent());
         } else {
             Specification<Question> spec = QuestionSpecification.publicSearch(QuestionSearchCondition.of(dto));
-            questions = questionRepository.findAll(spec, dto.pageable());
+            fetched = new ArrayList<>(questionRepository.findAll(spec, slicePageable).getContent());
         }
 
-        if (questions.isEmpty()) return Page.empty(dto.pageable());
-        return enrich(questions, dto.userId());
+        boolean hasNext = fetched.size() > size;
+        List<Question> items = hasNext ? fetched.subList(0, size) : fetched;
+        return enrichAsSlice(items, hasNext, page, dto.userId());
     }
 
-    public Page<QuestionSummary.Response> getMyQuestions(Visibility visibility, Pageable pageable, Long userId) {
-        Specification<Question> spec = QuestionSpecification.myQuestions(userId, visibility);
-        Page<Question> questions = questionRepository.findAll(spec, pageable);
-        if (questions.isEmpty()) return Page.empty(pageable);
-        return enrich(questions, userId);
+    public SliceResponse<QuestionSummary.Response> getMyQuestions(Visibility visibility, Pageable pageable, Long userId) {
+        int size = pageable.getPageSize();
+        Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1, pageable.getSort());
+        List<Question> fetched = new ArrayList<>(
+                questionRepository.findAll(QuestionSpecification.myQuestions(userId, visibility), slicePageable).getContent());
+        boolean hasNext = fetched.size() > size;
+        return enrichAsSlice(hasNext ? fetched.subList(0, size) : fetched, hasNext, pageable.getPageNumber(), userId);
     }
 
-    public Page<QuestionSummary.Response> getBookmarkedQuestions(Pageable pageable, Long userId) {
-        Specification<Question> spec = QuestionSpecification.isBookmarkedByUser(userId);
-        Page<Question> questions = questionRepository.findAll(spec, pageable);
-        if (questions.isEmpty()) return Page.empty(pageable);
-        return enrich(questions, userId);
+    public SliceResponse<QuestionSummary.Response> getBookmarkedQuestions(Pageable pageable, Long userId) {
+        int size = pageable.getPageSize();
+        Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1, pageable.getSort());
+        List<Question> fetched = new ArrayList<>(
+                questionRepository.findAll(QuestionSpecification.isBookmarkedByUser(userId), slicePageable).getContent());
+        boolean hasNext = fetched.size() > size;
+        return enrichAsSlice(hasNext ? fetched.subList(0, size) : fetched, hasNext, pageable.getPageNumber(), userId);
     }
 
-    private Page<QuestionSummary.Response> enrich(Page<Question> questions, Long userId) {
-        List<Long> questionIds = questions.getContent().stream().map(Question::getId).toList();
-        Set<Long> authorIds = questions.getContent().stream().map(Question::getAuthorId).collect(Collectors.toSet());
+    private SliceResponse<QuestionSummary.Response> enrichAsSlice(
+            List<Question> items, boolean hasNext, int pageNumber, Long userId) {
+        if (items.isEmpty()) return SliceResponse.empty(pageNumber);
+
+        List<Long> questionIds = items.stream().map(Question::getId).toList();
+        Set<Long> authorIds = items.stream().map(Question::getAuthorId).collect(Collectors.toSet());
 
         Map<Long, List<QuestionSummary.Response.TagInfo>> tagsByQuestionId = buildTagMap(questionIds);
         Map<Long, String> nicknameByAuthorId = buildNicknameMap(authorIds);
@@ -86,8 +99,9 @@ public class QuestionService {
                 ? new HashSet<>(bookmarkRepository.findBookmarkedQuestionIds(userId, questionIds))
                 : Set.of();
 
-        return QuestionSummary.Response.of(questions, tagsByQuestionId, nicknameByAuthorId,
-                bookmarkCountByQuestionId, bookmarkedIds, userId);
+        List<QuestionSummary.Response> responses = QuestionSummary.Response.of(
+                items, tagsByQuestionId, nicknameByAuthorId, bookmarkCountByQuestionId, bookmarkedIds, userId);
+        return new SliceResponse<>(responses, hasNext, pageNumber);
     }
 
     private Map<Long, List<QuestionSummary.Response.TagInfo>> buildTagMap(List<Long> questionIds) {
@@ -114,21 +128,27 @@ public class QuestionService {
                 .collect(Collectors.toMap(BookmarkCountProjection::getQuestionId, BookmarkCountProjection::getCount));
     }
 
-    public Page<StudyQuestionSummary> getStudyQuestions(ReviewStatus reviewStatus,
-                                                        List<Long> tagIds,
-                                                        Boolean hasAnswer,
-                                                        Boolean isMine,
-                                                        Boolean isBookmarked,
-                                                        Visibility visibility,
-                                                        Pageable pageable,
-                                                        Long userId) {
+    public SliceResponse<StudyQuestionSummary> getStudyQuestions(ReviewStatus reviewStatus,
+                                                                   List<Long> tagIds,
+                                                                   Boolean hasAnswer,
+                                                                   Boolean isMine,
+                                                                   Boolean isBookmarked,
+                                                                   Visibility visibility,
+                                                                   Pageable pageable,
+                                                                   Long userId) {
+
+        int size = pageable.getPageSize();
+        Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1, pageable.getSort());
 
         Specification<Question> spec = buildStudySpec(userId, reviewStatus, tagIds, hasAnswer, isMine, isBookmarked, visibility);
-        Page<Question> questions = questionRepository.findAll(spec, pageable);
-        if (questions.isEmpty()) return Page.empty(pageable);
+        List<Question> fetched = new ArrayList<>(questionRepository.findAll(spec, slicePageable).getContent());
 
-        List<Long> questionIds = questions.getContent().stream().map(Question::getId).toList();
-        Set<Long> authorIds = questions.getContent().stream().map(Question::getAuthorId).collect(Collectors.toSet());
+        boolean hasNext = fetched.size() > size;
+        List<Question> items = hasNext ? fetched.subList(0, size) : fetched;
+        if (items.isEmpty()) return SliceResponse.empty(pageable.getPageNumber());
+
+        List<Long> questionIds = items.stream().map(Question::getId).toList();
+        Set<Long> authorIds = items.stream().map(Question::getAuthorId).collect(Collectors.toSet());
 
         Map<Long, List<StudyQuestionSummary.TagInfo>> tagsByQuestionId =
                 questionTagRepository.findAllWithTagByQuestionIdIn(questionIds)
@@ -152,7 +172,7 @@ public class QuestionService {
 
         Set<Long> answeredIds = new HashSet<>(answerRepository.findAnsweredQuestionIds(userId, questionIds));
 
-        return questions.map(q -> new StudyQuestionSummary(
+        List<StudyQuestionSummary> responses = items.stream().map(q -> new StudyQuestionSummary(
                 q.getId(),
                 q.getTitle(),
                 tagsByQuestionId.getOrDefault(q.getId(), List.of()),
@@ -166,7 +186,9 @@ public class QuestionService {
                 q.getCreatedAt(),
                 reviewStatusByQuestionId.get(q.getId()),
                 answeredIds.contains(q.getId())
-        ));
+        )).toList();
+
+        return new SliceResponse<>(responses, hasNext, pageable.getPageNumber());
     }
 
     private Specification<Question> buildStudySpec(Long userId, ReviewStatus reviewStatus,
