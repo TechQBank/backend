@@ -21,5 +21,5 @@ public interface AnswerRepository extends JpaRepository<UserQuestionAnswer, Long
             """)
     List<UserQuestionAnswer> findPublicAnswersByQuestionId(@Param("questionId") Long questionId);
 
-    long countByQuestionIdAndIsPublicTrue(Long questionId);
+    long countByQuestionIdAndIsPublicTrueAndUserIdNot(Long questionId, Long userId);
 }

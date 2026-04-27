@@ -239,7 +239,7 @@ public class QuestionService {
         boolean isBookmarked = userId != null
                 && bookmarkRepository.existsByUserIdAndQuestionId(userId, questionId);
         long bookmarkCount = bookmarkRepository.countByQuestionId(questionId);
-        long publicAnswerCount = answerRepository.countByQuestionIdAndIsPublicTrue(questionId);
+        long publicAnswerCount = answerRepository.countByQuestionIdAndIsPublicTrueAndUserIdNot(questionId, userId);
 
         return new QuestionDetail.Response(
                 question.getId(),
