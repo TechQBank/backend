@@ -35,6 +35,7 @@ public class SecurityConfig {
 
     private final String[] WHITE_LIST = {
             "/api/questions", "/api/questions/{id}",
+            "/api/questions/{id}/public-answers",
             "/api/tags", "/api/tags/popular",
             "/api/questions/study", "/api/questions/study/random",
             "/login/**", "/oauth2/**",
@@ -75,7 +76,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(frontendUrl));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

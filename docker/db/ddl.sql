@@ -65,6 +65,7 @@ CREATE TABLE user_question_answers
     question_id BIGINT   NOT NULL,
     content     TEXT     NOT NULL,
     version     INT      NOT NULL DEFAULT 1,
+    is_public   BOOLEAN  NOT NULL DEFAULT false,
     created_at  DATETIME NOT NULL,
     updated_at  DATETIME NOT NULL,
     PRIMARY KEY (id),
@@ -128,6 +129,18 @@ CREATE TABLE follows
     PRIMARY KEY (id),
     UNIQUE KEY uk_follows (follower_id, followee_id),
     KEY idx_follows_follower_id (follower_id),
-    KEY idx_follows_followee_id (followee_id),
+    KEY idx_follows_followee_id (followee_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+CREATE TABLE answer_likes
+(
+    id         BIGINT   NOT NULL AUTO_INCREMENT,
+    answer_id  BIGINT   NOT NULL,
+    user_id    BIGINT   NOT NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_answer_likes (answer_id, user_id),
+    KEY idx_answer_likes_answer_id (answer_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

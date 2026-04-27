@@ -31,6 +31,9 @@ public class UserQuestionAnswer extends BaseEntity {
     @Column(nullable = false)
     private int version;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = false;
+
     @OneToMany(mappedBy = "answer")
     private List<AnswerHistory> histories = new ArrayList<>();
 
@@ -47,5 +50,9 @@ public class UserQuestionAnswer extends BaseEntity {
         this.version++;
         this.content = newContent;
         this.histories.add(AnswerHistory.of(this, newContent, this.version));
+    }
+
+    public void togglePublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 }

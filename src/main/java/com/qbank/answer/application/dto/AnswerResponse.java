@@ -8,6 +8,7 @@ public record AnswerResponse(
         Long id,
         String content,
         int version,
+        boolean isPublic,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -16,6 +17,7 @@ public record AnswerResponse(
                 answer.getId(),
                 answer.getContent(),
                 answer.getVersion(),
+                answer.isPublic(),
                 answer.getCreatedAt(),
                 answer.getUpdatedAt()
         );

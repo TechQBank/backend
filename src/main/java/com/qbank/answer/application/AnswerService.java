@@ -1,23 +1,23 @@
 package com.qbank.answer.application;
 
-import com.qbank.answer.application.dto.AnswerHistoryResponse;
-import com.qbank.answer.application.dto.AnswerRequest;
-import com.qbank.answer.application.dto.AnswerResponse;
-import com.qbank.answer.domain.AnswerHistory;
-import com.qbank.answer.domain.AnswerHistoryRepository;
-import com.qbank.answer.domain.AnswerRepository;
-import com.qbank.answer.domain.UserQuestionAnswer;
+import com.qbank.answer.application.dto.*;
+import com.qbank.answer.domain.*;
 import com.qbank.common.exception.BusinessException;
 import com.qbank.common.exception.ErrorCode;
 import com.qbank.question.domain.Question;
 import com.qbank.question.domain.QuestionRepository;
 import com.qbank.question.domain.Visibility;
+import com.qbank.user.domain.User;
+import com.qbank.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,9 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
     private final AnswerHistoryRepository answerHistoryRepository;
+    private final AnswerLikeRepository answerLikeRepository;
     private final QuestionRepository questionRepository;
+    private final UserRepository userRepository;
 
     public AnswerResponse getAnswer(Long questionId, Long userId) {
         validateAccess(questionId, userId);
@@ -59,10 +61,59 @@ public class AnswerService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANSWER_NOT_FOUND));
 
         answer.updateContent(request.content());
-
         answerHistoryRepository.save(AnswerHistory.of(answer, request.content(), answer.getVersion()));
 
         return AnswerResponse.from(answer);
+    }
+
+    @Transactional
+    public AnswerResponse togglePublic(Long questionId, boolean isPublic, Long userId) {
+        validateAccess(questionId, userId);
+
+        UserQuestionAnswer answer = answerRepository.findByUserIdAndQuestionId(userId, questionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANSWER_NOT_FOUND));
+
+        answer.togglePublic(isPublic);
+        return AnswerResponse.from(answer);
+    }
+
+    public List<PublicAnswerResponse> getPublicAnswers(Long questionId, Long userId) {
+        List<UserQuestionAnswer> answers = answerRepository.findPublicAnswersByQuestionId(questionId);
+
+        Set<Long> authorIds = answers.stream().map(UserQuestionAnswer::getUserId).collect(Collectors.toSet());
+        Map<Long, User> userMap = userRepository.findAllById(authorIds)
+                .stream().collect(Collectors.toMap(User::getId, u -> u));
+
+        return answers.stream()
+                .filter(a -> !Objects.equals(a.getUserId(), userId))
+                .map(a -> {
+                    long likeCount = answerLikeRepository.countByAnswerId(a.getId());
+                    boolean isLiked = userId != null && answerLikeRepository.existsByAnswerIdAndUserId(a.getId(), userId);
+                    return PublicAnswerResponse.of(a, userMap.get(a.getUserId()), likeCount, isLiked, userId);
+                })
+                .toList();
+    }
+
+    @Transactional
+    public LikeResponse likeAnswer(Long answerId, Long userId) {
+        answerRepository.findById(answerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANSWER_NOT_FOUND));
+
+        if (!answerLikeRepository.existsByAnswerIdAndUserId(answerId, userId)) {
+            answerLikeRepository.save(AnswerLike.of(answerId, userId));
+        }
+        return new LikeResponse(answerLikeRepository.countByAnswerId(answerId), true);
+    }
+
+    @Transactional
+    public LikeResponse unlikeAnswer(Long answerId, Long userId) {
+        answerRepository.findById(answerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANSWER_NOT_FOUND));
+
+        if (answerLikeRepository.existsByAnswerIdAndUserId(answerId, userId)) {
+            answerLikeRepository.deleteByAnswerIdAndUserId(answerId, userId);
+        }
+        return new LikeResponse(answerLikeRepository.countByAnswerId(answerId), false);
     }
 
     public List<AnswerHistoryResponse> getHistory(Long questionId, Long userId) {

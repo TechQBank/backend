@@ -21,6 +21,7 @@ public class QuestionDetail {
             boolean isMyQuestion,
             boolean isBookmarked,
             long bookmarkCount,
+            long publicAnswerCount,
             String myNotes,
             List<String> keyPoints,
             String memo,

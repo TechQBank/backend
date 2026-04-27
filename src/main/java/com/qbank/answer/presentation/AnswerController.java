@@ -4,6 +4,7 @@ import com.qbank.answer.application.AnswerService;
 import com.qbank.answer.application.dto.AnswerHistoryResponse;
 import com.qbank.answer.application.dto.AnswerRequest;
 import com.qbank.answer.application.dto.AnswerResponse;
+import com.qbank.answer.application.dto.TogglePublicRequest;
 import com.qbank.auth.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,14 @@ public class AnswerController {
             @Valid @RequestBody AnswerRequest request) {
 
         return answerService.updateAnswer(questionId, request, SecurityUtils.getCurrentUserId());
+    }
+
+    @PatchMapping("/public")
+    public AnswerResponse togglePublic(
+            @PathVariable Long questionId,
+            @RequestBody TogglePublicRequest request) {
+
+        return answerService.togglePublic(questionId, request.isPublic(), SecurityUtils.getCurrentUserId());
     }
 
     @GetMapping("/history")
