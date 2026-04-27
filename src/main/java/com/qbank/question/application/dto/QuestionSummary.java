@@ -27,6 +27,7 @@ public class QuestionSummary {
 
     public record Response(
             Long id,
+            Long authorId,
             String title,
             List<TagInfo> tags,
             CareerLevel careerLevel,
@@ -48,6 +49,7 @@ public class QuestionSummary {
                                          Long userId) {
             return questions.stream().map(q -> new Response(
                     q.getId(),
+                    q.getAuthorId(),
                     q.getTitle(),
                     tagsByQuestionId.getOrDefault(q.getId(), List.of()),
                     q.getCareerLevel(),

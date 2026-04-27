@@ -53,6 +53,32 @@ public class UserService {
                 .toList();
     }
 
+    public List<PublicUserResponse> getFollowers(Long targetUserId, Long currentUserId) {
+        List<Long> followerIds = followRepository.findByFolloweeId(targetUserId)
+                .stream().map(f -> f.getFollowerId()).toList();
+        if (followerIds.isEmpty()) return List.of();
+        return buildPublicUserResponses(followerIds, currentUserId);
+    }
+
+    public List<PublicUserResponse> getFollowing(Long targetUserId, Long currentUserId) {
+        List<Long> followeeIds = followRepository.findByFollowerId(targetUserId)
+                .stream().map(f -> f.getFolloweeId()).toList();
+        if (followeeIds.isEmpty()) return List.of();
+        return buildPublicUserResponses(followeeIds, currentUserId);
+    }
+
+    private List<PublicUserResponse> buildPublicUserResponses(List<Long> userIds, Long currentUserId) {
+        return userRepository.findAllById(userIds)
+                .stream()
+                .map(user -> {
+                    long followerCount = followRepository.countByFolloweeId(user.getId());
+                    long followingCount = followRepository.countByFollowerId(user.getId());
+                    boolean isFollowing = followRepository.existsByFollowerIdAndFolloweeId(currentUserId, user.getId());
+                    return PublicUserResponse.of(user, followerCount, followingCount, isFollowing);
+                })
+                .toList();
+    }
+
     @Transactional
     public UserProfileResponse updateMyProfile(Long userId, UpdateProfileRequest request) {
         User user = userRepository.findById(userId)

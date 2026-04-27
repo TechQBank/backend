@@ -50,4 +50,14 @@ public class UserController {
     public FollowResponse unfollow(@PathVariable Long userId) {
         return followService.unfollow(SecurityUtils.getCurrentUserId(), userId);
     }
+
+    @GetMapping("/{userId}/followers")
+    public List<PublicUserResponse> getFollowers(@PathVariable Long userId) {
+        return userService.getFollowers(userId, SecurityUtils.getCurrentUserId());
+    }
+
+    @GetMapping("/{userId}/following")
+    public List<PublicUserResponse> getFollowing(@PathVariable Long userId) {
+        return userService.getFollowing(userId, SecurityUtils.getCurrentUserId());
+    }
 }

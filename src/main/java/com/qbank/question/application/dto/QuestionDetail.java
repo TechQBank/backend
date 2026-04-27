@@ -11,6 +11,7 @@ public class QuestionDetail {
 
     public record Response(
             Long id,
+            Long authorId,
             String title,
             List<TagInfo> tags,
             CareerLevel careerLevel,

@@ -2,6 +2,7 @@ package com.qbank.follow.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface FollowRepository extends JpaRepository<Follow, Long> {
@@ -10,4 +11,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     long countByFolloweeId(Long followeeId);
     long countByFollowerId(Long followerId);
     void deleteByFollowerIdAndFolloweeId(Long followerId, Long followeeId);
+    List<Follow> findByFolloweeId(Long followeeId);
+    List<Follow> findByFollowerId(Long followerId);
 }

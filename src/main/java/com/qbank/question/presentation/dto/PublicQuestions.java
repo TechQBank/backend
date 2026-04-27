@@ -37,6 +37,7 @@ public class PublicQuestions {
 
     public record Response(
             Long id,
+            Long authorId,
             String title,
             List<TagInfo> tags,
             String careerLevel,
@@ -52,9 +53,9 @@ public class PublicQuestions {
         public record TagInfo(Long id, String name) {}
 
         public static Response of(QuestionSummary.Response dto) {
-
             return new Response(
                     dto.id(),
+                    dto.authorId(),
                     dto.title(),
                     dto.tags().stream().map(tagInfo -> new TagInfo(tagInfo.id(), tagInfo.name())).toList(),
                     dto.careerLevel() != null ? dto.careerLevel().name() : null,

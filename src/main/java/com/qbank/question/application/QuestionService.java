@@ -242,6 +242,7 @@ public class QuestionService {
 
         return new QuestionDetail.Response(
                 question.getId(),
+                question.getAuthorId(),
                 question.getTitle(),
                 tags,
                 question.getCareerLevel(),
