@@ -2,6 +2,7 @@ package com.qbank.tag.application;
 
 import com.qbank.tag.application.dto.PopularTagResponse;
 import com.qbank.tag.application.dto.TagResponse;
+import com.qbank.tag.domain.Tag;
 import com.qbank.tag.domain.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -24,10 +25,25 @@ public class TagService {
                 .toList();
     }
 
+    public List<TagResponse> findByKeyword(String keyword) {
+        return tagRepository.findByNameContainingIgnoreCase(keyword, PageRequest.of(0, 20))
+                .stream()
+                .map(TagResponse::from)
+                .toList();
+    }
+
     public List<PopularTagResponse> getPopularTags(int limit) {
         return tagRepository.findPopularTags(PageRequest.of(0, limit))
                 .stream()
                 .map(PopularTagResponse::from)
                 .toList();
+    }
+
+    @Transactional
+    public TagResponse createOrGet(String name) {
+        String normalized = Tag.normalize(name);
+        return tagRepository.findByNameIgnoreCase(normalized)
+                .map(TagResponse::from)
+                .orElseGet(() -> TagResponse.from(tagRepository.save(Tag.of(name))));
     }
 }

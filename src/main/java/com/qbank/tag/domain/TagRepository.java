@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface TagRepository extends JpaRepository<Tag, Long> {
     Optional<Tag> findByNameIgnoreCase(String name);
     List<Tag> findAllByOrderByNameAsc();
+    List<Tag> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
 
     @Query("""
             SELECT t.id AS id, t.name AS name, COUNT(qt.id) AS questionCount
