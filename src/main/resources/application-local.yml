@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/techqbank?serverTimezone=UTC&characterEncoding=UTF-8
+    username: application
+    password: application
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 8080
+
+jwt:
+  secret: localDevSecretKeyMustBeAtLeast256BitsLong1234567890ABCDEF
+
+frontend:
+  url: http://localhost:5173
