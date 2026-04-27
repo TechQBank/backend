@@ -21,7 +21,8 @@ public class QuestionSummary {
             Difficulty difficulty,
             Pageable pageable,
             Long userId,
-            String sort
+            String sort,
+            Long authorId
     ) {
     }
 

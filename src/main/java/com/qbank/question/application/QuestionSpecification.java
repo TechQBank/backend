@@ -22,7 +22,13 @@ public class QuestionSpecification {
                 .and(containsKeyword(condition.keyword()))
                 .and(hasAnyTagId(condition.tagIds()))
                 .and(hasCareerLevel(condition.careerLevel()))
-                .and(hasDifficulty(condition.difficulty()));
+                .and(hasDifficulty(condition.difficulty()))
+                .and(hasAuthor(condition.authorId()));
+    }
+
+    public static Specification<Question> hasAuthor(Long authorId) {
+        if (authorId == null) return Specification.unrestricted();
+        return (root, query, cb) -> cb.equal(root.get("authorId"), authorId);
     }
 
     public static Specification<Question> isPublic() {

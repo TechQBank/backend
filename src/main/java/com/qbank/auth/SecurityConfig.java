@@ -39,7 +39,8 @@ public class SecurityConfig {
             "/api/tags", "/api/tags/popular",
             "/api/questions/study", "/api/questions/study/random",
             "/login/**", "/oauth2/**",
-            "/api/users/search"
+            "/api/users/search",
+            "/api/users/{id}/groups"
     };
 
     @Bean

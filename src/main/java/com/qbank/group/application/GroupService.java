@@ -66,8 +66,19 @@ public class GroupService {
         return GroupResponse.of(group, count);
     }
 
+    public List<GroupResponse> getPublicGroupsByUser(Long targetUserId) {
+        return groupRepository.findByUserIdAndIsPublicTrueOrderByCreatedAtDesc(targetUserId)
+                .stream()
+                .map(g -> GroupResponse.of(g, groupItemRepository.countByGroupId(g.getId())))
+                .toList();
+    }
+
     public List<StudyQuestionSummary> getGroupStudyQuestions(Long groupId, Long userId) {
-        findOwnedGroup(groupId, userId);
+        QuestionGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GROUP_NOT_FOUND));
+        if (!group.isPublic() && !Objects.equals(group.getUserId(), userId)) {
+            throw new BusinessException(ErrorCode.GROUP_ACCESS_DENIED);
+        }
         List<Long> questionIds = groupItemRepository.findByGroupId(groupId)
                 .stream().map(QuestionGroupItem::getQuestionId).toList();
         return questionService.getStudyQuestionsByIds(questionIds, userId);

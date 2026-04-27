@@ -15,7 +15,8 @@ public class PublicQuestions {
             List<Long> tagIds,
             String careerLevel,
             String difficulty,
-            String sort
+            String sort,
+            Long authorId
     ) {
 
         public CareerLevel getCareerLevel() {
@@ -31,7 +32,7 @@ public class PublicQuestions {
         }
 
         public QuestionSummary.Request to(Pageable pageable, Long userId) {
-            return new QuestionSummary.Request(keyword, tagIds, getCareerLevel(), getDifficulty(), pageable, userId, sort);
+            return new QuestionSummary.Request(keyword, tagIds, getCareerLevel(), getDifficulty(), pageable, userId, sort, authorId);
         }
     }
 

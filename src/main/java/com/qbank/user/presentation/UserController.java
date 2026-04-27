@@ -3,6 +3,8 @@ package com.qbank.user.presentation;
 import com.qbank.auth.SecurityUtils;
 import com.qbank.follow.application.FollowService;
 import com.qbank.follow.application.dto.FollowResponse;
+import com.qbank.group.application.GroupService;
+import com.qbank.group.application.dto.GroupResponse;
 import com.qbank.user.application.UserService;
 import com.qbank.user.application.dto.PublicUserResponse;
 import com.qbank.user.application.dto.UpdateProfileRequest;
@@ -20,6 +22,7 @@ public class UserController {
 
     private final UserService userService;
     private final FollowService followService;
+    private final GroupService groupService;
 
     @GetMapping("/me")
     public UserProfileResponse getMyProfile() {
@@ -39,6 +42,11 @@ public class UserController {
     @GetMapping("/{userId}")
     public PublicUserResponse getUserProfile(@PathVariable Long userId) {
         return userService.getUserProfile(userId, SecurityUtils.getCurrentUserId());
+    }
+
+    @GetMapping("/{userId}/groups")
+    public List<GroupResponse> getPublicGroupsByUser(@PathVariable Long userId) {
+        return groupService.getPublicGroupsByUser(userId);
     }
 
     @PostMapping("/{userId}/follow")

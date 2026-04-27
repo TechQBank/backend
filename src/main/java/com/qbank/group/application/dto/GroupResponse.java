@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public record GroupResponse(
         Long id,
+        Long userId,
         String name,
         String description,
         boolean isPublic,
@@ -15,6 +16,7 @@ public record GroupResponse(
     public static GroupResponse of(QuestionGroup group, long questionCount) {
         return new GroupResponse(
                 group.getId(),
+                group.getUserId(),
                 group.getName(),
                 group.getDescription(),
                 group.isPublic(),
