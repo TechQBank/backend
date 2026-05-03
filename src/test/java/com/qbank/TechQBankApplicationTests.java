@@ -1,10 +1,10 @@
-package com.qbank.back;
+package com.qbank;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TechQBankBackApplicationTests {
+class TechQBankApplicationTests {
 
     @Test
     void contextLoads() {

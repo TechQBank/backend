@@ -1,0 +1,23 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: false
+    show-sql: false
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope: read:user, user:email
+
+jwt:
+  secret: testSecretKeyMustBeAtLeast256BitsLongForIntegrationTests12AB
+  expiration-ms: 3600000
+
+frontend:
+  url: http://localhost:5173

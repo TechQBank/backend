@@ -1,0 +1,13 @@
+DELETE FROM question_groups;
+DELETE FROM question_group_items;
+DELETE FROM answer_likes;
+DELETE FROM follows;
+DELETE FROM bookmarks;
+DELETE FROM review_logs;
+DELETE FROM user_question_reviews;
+DELETE FROM answer_histories;
+DELETE FROM user_question_answers;
+DELETE FROM question_tags;
+DELETE FROM questions;
+DELETE FROM tags;
+DELETE FROM users;

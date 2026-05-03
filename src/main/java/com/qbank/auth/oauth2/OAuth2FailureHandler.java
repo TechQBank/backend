@@ -18,10 +18,6 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
 
     @Value("${frontend.url}")
     private String frontendUrl;
-    @Value("${spring.security.oauth2.client.registration.github.client-id}")
-    private String clientId;
-    @Value("${spring.security.oauth2.client.registration.github.client-secret}")
-    private String clientSecret;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
