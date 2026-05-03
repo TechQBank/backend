@@ -22,9 +22,18 @@ public class SseEmitterManager {
     public SseEmitter connect(Long userId) {
         SseEmitter emitter = new SseEmitter(TIMEOUT);
 
-        emitter.onCompletion(() -> emitters.remove(userId));
-        emitter.onTimeout(() -> emitters.remove(userId));
-        emitter.onError(e -> emitters.remove(userId));
+        emitter.onCompletion(() -> {
+            log.info("SSE completed. userId={}", userId);
+            emitters.remove(userId, emitter);
+        });
+        emitter.onTimeout(() -> {
+            log.info("SSE timeout. userId={}", userId);
+            emitters.remove(userId, emitter);
+        });
+        emitter.onError(e -> {
+            log.warn("SSE error. userId={}", userId, e);
+            emitters.remove(userId, emitter);
+        });
 
         emitters.put(userId, emitter);
 

@@ -140,7 +140,7 @@ public class HttpLoggingFilter extends OncePerRequestFilter {
 
     private boolean isSkippable(HttpServletRequest req) {
         String uri = req.getRequestURI();
-        return uri.equals("/favicon.ico");
+        return uri.equals("/favicon.ico") || uri.equals("/api/notifications/stream");
     }
 
     private String valueOrDefault(String value, String defaultValue) {
