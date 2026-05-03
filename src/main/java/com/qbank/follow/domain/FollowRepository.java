@@ -1,6 +1,7 @@
 package com.qbank.follow.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +25,8 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     @Query("SELECT f.followeeId FROM Follow f WHERE f.followerId = :followerId AND f.followeeId IN :followeeIds")
     List<Long> findFolloweeIdsByFollowerIdAndFolloweeIdIn(@Param("followerId") Long followerId, @Param("followeeIds") List<Long> followeeIds);
+
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO follows (follower_id, followee_id, created_at) VALUES (:followerId, :followeeId, NOW())", nativeQuery = true)
+    void insertIgnore(@Param("followerId") Long followerId, @Param("followeeId") Long followeeId);
 }

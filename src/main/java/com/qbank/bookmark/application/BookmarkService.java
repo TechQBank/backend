@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -39,7 +40,7 @@ public class BookmarkService {
             bookmarkRepository.delete(existing.get());
             isBookmarked = false;
         } else {
-            bookmarkRepository.save(Bookmark.of(userId, questionId));
+            bookmarkRepository.insertIgnore(userId, questionId);
             isBookmarked = true;
         }
 

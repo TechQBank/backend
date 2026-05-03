@@ -1,6 +1,7 @@
 package com.qbank.bookmark.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -29,4 +30,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     @Query("SELECT COUNT(b) FROM Bookmark b WHERE b.questionId = :questionId")
     long countByQuestionId(@Param("questionId") Long questionId);
+
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO bookmarks (user_id, question_id, created_at) VALUES (:userId, :questionId, NOW())", nativeQuery = true)
+    void insertIgnore(@Param("userId") Long userId, @Param("questionId") Long questionId);
 }

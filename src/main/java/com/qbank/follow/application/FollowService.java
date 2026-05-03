@@ -3,7 +3,6 @@ package com.qbank.follow.application;
 import com.qbank.common.exception.BusinessException;
 import com.qbank.common.exception.ErrorCode;
 import com.qbank.follow.application.dto.FollowResponse;
-import com.qbank.follow.domain.Follow;
 import com.qbank.follow.domain.FollowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,9 +20,7 @@ public class FollowService {
         if (followerId.equals(followeeId)) {
             throw new BusinessException(ErrorCode.FOLLOW_SELF);
         }
-        if (!followRepository.existsByFollowerIdAndFolloweeId(followerId, followeeId)) {
-            followRepository.save(Follow.of(followerId, followeeId));
-        }
+        followRepository.insertIgnore(followerId, followeeId);
         long followerCount = followRepository.countByFolloweeId(followeeId);
         return new FollowResponse(followerCount, true);
     }
