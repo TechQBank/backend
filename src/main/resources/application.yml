@@ -25,3 +25,16 @@ spring:
 
 jwt:
   expiration-ms: 2592000000  # 30일
+
+logging:
+  file:
+    name: logs/app.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,loggers
+  endpoint:
+    health:
+      show-details: when-authorized
