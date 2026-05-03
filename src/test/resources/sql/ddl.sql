@@ -45,7 +45,8 @@ CREATE TABLE questions
     KEY idx_questions_author_id (author_id),
     KEY idx_questions_visibility (visibility),
     KEY idx_questions_career_level (career_level),
-    KEY idx_questions_difficulty (difficulty)
+    KEY idx_questions_difficulty (difficulty),
+    KEY idx_questions_created_at (created_at)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
@@ -56,7 +57,8 @@ CREATE TABLE question_tags
     question_id BIGINT NOT NULL,
     tag_id      BIGINT NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_question_tags (question_id, tag_id)
+    UNIQUE KEY uk_question_tags (question_id, tag_id),
+    KEY idx_question_tags_tag_id (tag_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
@@ -72,7 +74,8 @@ CREATE TABLE user_question_answers
     created_at  DATETIME NOT NULL,
     updated_at  DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_user_question_answers (user_id, question_id)
+    UNIQUE KEY uk_user_question_answers (user_id, question_id),
+    KEY idx_user_question_answers_question_id (question_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
@@ -99,7 +102,8 @@ CREATE TABLE user_question_reviews
     created_at  DATETIME    NOT NULL,
     updated_at  DATETIME    NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_user_question_reviews (user_id, question_id)
+    UNIQUE KEY uk_user_question_reviews (user_id, question_id),
+    KEY idx_user_question_reviews_question_id (question_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
@@ -123,7 +127,8 @@ CREATE TABLE bookmarks
     question_id BIGINT   NOT NULL,
     created_at  DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_bookmarks (user_id, question_id)
+    UNIQUE KEY uk_bookmarks (user_id, question_id),
+    KEY idx_bookmarks_question_id (question_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
