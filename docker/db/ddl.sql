@@ -175,3 +175,17 @@ CREATE TABLE question_group_items
     KEY idx_question_group_items_group_id (group_id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+
+CREATE TABLE notifications
+(
+    id           BIGINT      NOT NULL AUTO_INCREMENT,
+    recipient_id BIGINT      NOT NULL,
+    actor_id     BIGINT      NOT NULL,
+    type         VARCHAR(20) NOT NULL,
+    is_read      BOOLEAN     NOT NULL DEFAULT false,
+    created_at   DATETIME    NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_notifications_recipient_id (recipient_id),
+    KEY idx_notifications_recipient_is_read (recipient_id, is_read)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+

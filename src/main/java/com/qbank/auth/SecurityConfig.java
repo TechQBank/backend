@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, WHITE_LIST).permitAll()
                         // Swagger, Actuator
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
+                        // SSE — 인증 필요 (JWT 필터가 처리)
+                        .requestMatchers("/api/notifications/stream").authenticated()
                         // 나머지 전부 인증 필요
                         .anyRequest().authenticated()
                 )

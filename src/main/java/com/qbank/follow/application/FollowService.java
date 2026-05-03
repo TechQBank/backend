@@ -4,6 +4,7 @@ import com.qbank.common.exception.BusinessException;
 import com.qbank.common.exception.ErrorCode;
 import com.qbank.follow.application.dto.FollowResponse;
 import com.qbank.follow.domain.FollowRepository;
+import com.qbank.notification.application.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowService {
 
     private final FollowRepository followRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public FollowResponse follow(Long followerId, Long followeeId) {
         if (followerId.equals(followeeId)) {
             throw new BusinessException(ErrorCode.FOLLOW_SELF);
         }
+        boolean isNewFollow = !followRepository.existsByFollowerIdAndFolloweeId(followerId, followeeId);
         followRepository.insertIgnore(followerId, followeeId);
+
+        if (isNewFollow) {
+            notificationService.createFollowNotification(followeeId, followerId);
+        }
+
         long followerCount = followRepository.countByFolloweeId(followeeId);
         return new FollowResponse(followerCount, true);
     }
