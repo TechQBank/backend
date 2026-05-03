@@ -46,7 +46,8 @@ CREATE TABLE questions
     KEY idx_questions_visibility (visibility),
     KEY idx_questions_career_level (career_level),
     KEY idx_questions_difficulty (difficulty),
-    KEY idx_questions_created_at (created_at)
+    KEY idx_questions_created_at (created_at),
+    FULLTEXT KEY idx_questions_fulltext (title, description) WITH PARSER ngram
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 

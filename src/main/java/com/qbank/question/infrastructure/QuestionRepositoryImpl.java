@@ -8,6 +8,7 @@ import com.qbank.review.domain.QUserQuestionReview;
 import com.qbank.review.domain.ReviewStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -99,8 +100,12 @@ public class QuestionRepositoryImpl implements QuestionRepositoryCustom {
 
     private BooleanExpression containsKeyword(String keyword) {
         if (!StringUtils.hasText(keyword)) return null;
-        String like = "%" + keyword + "%";
-        return q.title.like(like).or(q.description.like(like));
+        // n-gram FTS: 한글 포함 2자 이상 토큰 지원. MATCH...AGAINST는 MySQL 전용이므로
+        // MatchAgainstFunctionContributor에 등록된 'match_against' 함수를 통해 호출.
+        return Expressions.numberTemplate(Double.class,
+                "function('match_against', {0}, {1}, {2})",
+                q.title, q.description, Expressions.asString(keyword)
+        ).gt(0.0);
     }
 
     private BooleanExpression hasAnyTagId(List<Long> tagIds) {
