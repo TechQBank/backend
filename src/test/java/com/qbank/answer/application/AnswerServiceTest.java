@@ -1,6 +1,6 @@
 package com.qbank.answer.application;
 
-import com.qbank.common.AbstractIntegrationTest;
+import com.qbank.common.abstractclass.AbstractIntegrationTest;
 import com.qbank.answer.application.dto.AnswerRequest;
 import com.qbank.answer.application.dto.AnswerResponse;
 import com.qbank.answer.domain.AnswerHistoryRepository;
@@ -12,7 +12,6 @@ import com.qbank.user.domain.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

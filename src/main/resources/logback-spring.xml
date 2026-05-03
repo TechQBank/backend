@@ -59,20 +59,6 @@
     </logger>
 
     <!-- ──────────────────────────────────────────
-         SQL 로그 — prod 프로파일 제외
-    ────────────────────────────────────────── -->
-    <springProfile name="!prod">
-        <!-- 실행 SQL -->
-        <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <!-- 바인딩 파라미터 (Hibernate 6 / Spring Boot 3.x) -->
-        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-    </springProfile>
-
-    <!-- ──────────────────────────────────────────
          Root
     ────────────────────────────────────────── -->
     <root level="INFO">

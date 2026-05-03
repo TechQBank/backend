@@ -1,6 +1,6 @@
 package com.qbank.question.application;
 
-import com.qbank.common.AbstractIntegrationTest;
+import com.qbank.common.abstractclass.AbstractIntegrationTest;
 import com.qbank.answer.domain.AnswerRepository;
 import com.qbank.answer.domain.UserQuestionAnswer;
 import com.qbank.bookmark.domain.Bookmark;
@@ -22,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

@@ -1,7 +1,9 @@
-package com.qbank.common;
+package com.qbank.common.abstractclass;
 
+import com.qbank.common.config.TestLogConfig;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -13,6 +15,7 @@ import org.testcontainers.junit.jupiter.Container;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(value = {TestLogConfig.class})
 @SqlGroup(value = {
         @Sql(scripts = "classpath:sql/ddl.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS),
         @Sql(scripts = "classpath:sql/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)

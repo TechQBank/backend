@@ -2,7 +2,7 @@ package com.qbank.bookmark.application;
 
 import com.qbank.bookmark.application.dto.BookmarkToggle;
 import com.qbank.bookmark.domain.BookmarkRepository;
-import com.qbank.common.AbstractIntegrationTest;
+import com.qbank.common.abstractclass.AbstractIntegrationTest;
 import com.qbank.common.exception.BusinessException;
 import com.qbank.question.domain.*;
 import com.qbank.user.domain.User;
