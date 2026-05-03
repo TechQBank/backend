@@ -21,10 +21,8 @@ import com.qbank.tag.domain.TagRepository;
 import com.qbank.user.domain.User;
 import com.qbank.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,8 +56,7 @@ public class QuestionService {
         if ("BOOKMARK_COUNT".equals(dto.sort())) {
             fetched = new ArrayList<>(questionRepository.findPublicByBookmarkCount(slicePageable).getContent());
         } else {
-            Specification<Question> spec = QuestionSpecification.publicSearch(QuestionSearchCondition.of(dto));
-            fetched = new ArrayList<>(questionRepository.findAll(spec, slicePageable).getContent());
+            fetched = new ArrayList<>(questionRepository.findPublicQuestions(QuestionSearchCondition.of(dto), slicePageable));
         }
 
         boolean hasNext = fetched.size() > size;
@@ -71,7 +68,7 @@ public class QuestionService {
         int size = pageable.getPageSize();
         Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1, pageable.getSort());
         List<Question> fetched = new ArrayList<>(
-                questionRepository.findAll(QuestionSpecification.myQuestions(userId, visibility), slicePageable).getContent());
+                questionRepository.findMyQuestions(userId, visibility, slicePageable));
         boolean hasNext = fetched.size() > size;
         return enrichAsSlice(hasNext ? fetched.subList(0, size) : fetched, hasNext, pageable.getPageNumber(), userId);
     }
@@ -80,7 +77,7 @@ public class QuestionService {
         int size = pageable.getPageSize();
         Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1, pageable.getSort());
         List<Question> fetched = new ArrayList<>(
-                questionRepository.findAll(QuestionSpecification.isBookmarkedByUser(userId), slicePageable).getContent());
+                questionRepository.findBookmarkedQuestions(userId, slicePageable));
         boolean hasNext = fetched.size() > size;
         return enrichAsSlice(hasNext ? fetched.subList(0, size) : fetched, hasNext, pageable.getPageNumber(), userId);
     }
@@ -149,8 +146,8 @@ public class QuestionService {
         int size = pageable.getPageSize();
         Pageable slicePageable = PageRequest.of(pageable.getPageNumber(), size + 1, pageable.getSort());
 
-        Specification<Question> spec = buildStudySpec(userId, reviewStatus, tagIds, hasAnswer, isMine, isBookmarked, visibility);
-        List<Question> fetched = new ArrayList<>(questionRepository.findAll(spec, slicePageable).getContent());
+        List<Question> fetched = new ArrayList<>(
+                questionRepository.findStudyQuestions(userId, reviewStatus, tagIds, hasAnswer, isMine, isBookmarked, visibility, slicePageable));
 
         boolean hasNext = fetched.size() > size;
         List<Question> items = hasNext ? fetched.subList(0, size) : fetched;
@@ -208,21 +205,6 @@ public class QuestionService {
                 reviewStatusByQuestionId.get(q.getId()),
                 answeredIds.contains(q.getId())
         )).toList();
-    }
-
-    private Specification<Question> buildStudySpec(Long userId, ReviewStatus reviewStatus,
-                                                    List<Long> tagIds, Boolean hasAnswer,
-                                                    Boolean isMine, Boolean isBookmarked,
-                                                    Visibility visibility) {
-        Specification<Question> spec = QuestionSpecification.isStudyQuestion(userId);
-        if (reviewStatus != null)              spec = spec.and(QuestionSpecification.hasReviewStatus(userId, reviewStatus));
-        if (tagIds != null && !tagIds.isEmpty()) spec = spec.and(QuestionSpecification.hasAnyTagId(tagIds));
-        if (Boolean.TRUE.equals(hasAnswer))    spec = spec.and(QuestionSpecification.hasAnswerWritten(userId));
-        if (Boolean.FALSE.equals(hasAnswer))   spec = spec.and(QuestionSpecification.hasNoAnswer(userId));
-        if (Boolean.TRUE.equals(isMine))       spec = spec.and(QuestionSpecification.isAuthor(userId));
-        if (Boolean.TRUE.equals(isBookmarked)) spec = spec.and(QuestionSpecification.isBookmarkedByUser(userId));
-        if (visibility != null)                spec = spec.and(QuestionSpecification.hasVisibility(visibility));
-        return spec;
     }
 
     public QuestionDetail.Response getDetail(Long questionId, Long userId) {
