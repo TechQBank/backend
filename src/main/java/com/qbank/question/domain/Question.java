@@ -51,7 +51,7 @@ public class Question extends BaseEntity {
     @Column(length = 500)
     private String memo;
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<QuestionTag> questionTags = new ArrayList<>();
 
     public static Question create(Long authorId, String title, CareerLevel careerLevel,

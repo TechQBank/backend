@@ -34,7 +34,7 @@ public class UserQuestionAnswer extends BaseEntity {
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = false;
 
-    @OneToMany(mappedBy = "answer")
+    @OneToMany(mappedBy = "answer", fetch = FetchType.LAZY)
     private List<AnswerHistory> histories = new ArrayList<>();
 
     public static UserQuestionAnswer create(Long userId, Long questionId, String content) {

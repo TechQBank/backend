@@ -29,7 +29,7 @@ public class UserQuestionReview extends BaseEntity {
     @Column(nullable = false, length = 20)
     private ReviewStatus status;
 
-    @OneToMany(mappedBy = "review")
+    @OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
     private List<ReviewLog> logs = new ArrayList<>();
 
     public static UserQuestionReview create(Long userId, Long questionId, ReviewStatus status) {
