@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -79,18 +80,28 @@ public class AnswerService {
 
     public List<PublicAnswerResponse> getPublicAnswers(Long questionId, Long userId) {
         List<UserQuestionAnswer> answers = answerRepository.findPublicAnswersByQuestionId(questionId);
+        if (answers.isEmpty()) return List.of();
 
         Set<Long> authorIds = answers.stream().map(UserQuestionAnswer::getUserId).collect(Collectors.toSet());
         Map<Long, User> userMap = userRepository.findAllById(authorIds)
                 .stream().collect(Collectors.toMap(User::getId, u -> u));
 
+        List<Long> answerIds = answers.stream().map(UserQuestionAnswer::getId).toList();
+        Map<Long, Long> likeCountMap = answerLikeRepository.countByAnswerIdIn(answerIds)
+                .stream().collect(Collectors.toMap(AnswerLikeCountProjection::getAnswerId, AnswerLikeCountProjection::getCount));
+        Set<Long> likedAnswerIds = userId != null
+                ? new HashSet<>(answerLikeRepository.findLikedAnswerIds(userId, answerIds))
+                : Set.of();
+
         return answers.stream()
                 .filter(a -> !Objects.equals(a.getUserId(), userId))
-                .map(a -> {
-                    long likeCount = answerLikeRepository.countByAnswerId(a.getId());
-                    boolean isLiked = userId != null && answerLikeRepository.existsByAnswerIdAndUserId(a.getId(), userId);
-                    return PublicAnswerResponse.of(a, userMap.get(a.getUserId()), likeCount, isLiked, userId);
-                })
+                .map(a -> PublicAnswerResponse.of(
+                        a,
+                        userMap.get(a.getUserId()),
+                        likeCountMap.getOrDefault(a.getId(), 0L),
+                        likedAnswerIds.contains(a.getId()),
+                        userId
+                ))
                 .toList();
     }
 

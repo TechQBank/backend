@@ -15,4 +15,7 @@ public interface QuestionGroupItemRepository extends JpaRepository<QuestionGroup
 
     @Query("SELECT i.groupId FROM QuestionGroupItem i WHERE i.questionId = :questionId")
     List<Long> findGroupIdsByQuestionId(@Param("questionId") Long questionId);
+
+    @Query("SELECT i.groupId AS groupId, COUNT(i) AS count FROM QuestionGroupItem i WHERE i.groupId IN :groupIds GROUP BY i.groupId")
+    List<GroupItemCountProjection> countByGroupIdIn(@Param("groupIds") List<Long> groupIds);
 }

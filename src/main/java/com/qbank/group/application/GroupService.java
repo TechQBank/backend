@@ -5,6 +5,7 @@ import com.qbank.common.exception.ErrorCode;
 import com.qbank.group.application.dto.AddQuestionRequest;
 import com.qbank.group.application.dto.GroupRequest;
 import com.qbank.group.application.dto.GroupResponse;
+import com.qbank.group.domain.GroupItemCountProjection;
 import com.qbank.group.domain.QuestionGroup;
 import com.qbank.group.domain.QuestionGroupItem;
 import com.qbank.group.domain.QuestionGroupItemRepository;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,10 +31,8 @@ public class GroupService {
     private final QuestionService questionService;
 
     public List<GroupResponse> getMyGroups(Long userId) {
-        return groupRepository.findByUserIdOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(g -> GroupResponse.of(g, groupItemRepository.countByGroupId(g.getId())))
-                .toList();
+        List<QuestionGroup> groups = groupRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        return attachItemCounts(groups);
     }
 
     @Transactional
@@ -67,9 +68,17 @@ public class GroupService {
     }
 
     public List<GroupResponse> getPublicGroupsByUser(Long targetUserId) {
-        return groupRepository.findByUserIdAndIsPublicTrueOrderByCreatedAtDesc(targetUserId)
-                .stream()
-                .map(g -> GroupResponse.of(g, groupItemRepository.countByGroupId(g.getId())))
+        List<QuestionGroup> groups = groupRepository.findByUserIdAndIsPublicTrueOrderByCreatedAtDesc(targetUserId);
+        return attachItemCounts(groups);
+    }
+
+    private List<GroupResponse> attachItemCounts(List<QuestionGroup> groups) {
+        if (groups.isEmpty()) return List.of();
+        List<Long> groupIds = groups.stream().map(QuestionGroup::getId).toList();
+        Map<Long, Long> countMap = groupItemRepository.countByGroupIdIn(groupIds)
+                .stream().collect(Collectors.toMap(GroupItemCountProjection::getGroupId, GroupItemCountProjection::getCount));
+        return groups.stream()
+                .map(g -> GroupResponse.of(g, countMap.getOrDefault(g.getId(), 0L)))
                 .toList();
     }
 
